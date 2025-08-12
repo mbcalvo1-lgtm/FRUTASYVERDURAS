@@ -1,0 +1,178 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Frutas y Verduras a Domicilio</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-image: url('https://i.imgur.com/MmiKSsR.jpeg');
+    background-size: cover;
+    background-position: center;
+    margin: 0; 
+    padding: 20px;
+    color: #333;
+  }
+  .container {
+    max-width: 600px;
+    background: rgba(255,255,255,0.9);
+    padding: 20px;
+    margin: auto;
+    border-radius: 8px;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .producto {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    align-items: center;
+  }
+  label {
+    flex: 1;
+  }
+  input[type="number"] {
+    width: 80px;
+    padding: 5px;
+  }
+  .total {
+    font-weight: bold;
+    font-size: 1.2em;
+    text-align: right;
+    margin-top: 15px;
+  }
+  button {
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px;
+    background: #25D366;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1em;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #1ebe57;
+  }
+  small {
+    display: block;
+    margin-top: -8px;
+    margin-bottom: 10px;
+    color: #666;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>Frutas y Verduras a Domicilio</h1>
+    <form id="pedidoForm">
+      <!-- Productos -->
+    </form>
+    <div class="total">Total: $<span id="total">0</span></div>
+    <button id="enviarBtn" type="button">Enviar pedido por WhatsApp</button>
+  </div>
+
+<script>
+  const productos = [
+    { nombre: "PALTA (kilo)", precio: 2000, unidad: "kg" },
+    { nombre: "TOMATE (kilo)", precio: 1500, unidad: "kg" },
+    { nombre: "LECHUGA COSTINA (unidad)", precio: 800, unidad: "u" },
+    { nombre: "LECHUGA ESCAROLA (unidad)", precio: 900, unidad: "u" },
+    { nombre: "PAPA 5 K", precio: 4000, unidad: "5kg" },
+    { nombre: "APIO (unidad)", precio: 1000, unidad: "u" },
+    { nombre: "ZANAHORIA (kilo)", precio: 1200, unidad: "kg" },
+    { nombre: "MANZANA VERDE (kilo)", precio: 1800, unidad: "kg" },
+    { nombre: "MANZANA FUJI (kilo)", precio: 2000, unidad: "kg" },
+    { nombre: "PEPINO (unidad)", precio: 700, unidad: "u" },
+    { nombre: "PIMENTÓN ROJO (unidad)", precio: 1500, unidad: "u" },
+    { nombre: "PERA (kilo)", precio: 1700, unidad: "kg" },
+    { nombre: "KIWI (kilo)", precio: 2500, unidad: "kg" },
+    { nombre: "ZAPALLO ITALIANO (unidad)", precio: 1300, unidad: "u" },
+    { nombre: "ALMENDRAS ENTERAS 1 k", precio: 8000, unidad: "kg" },
+    { nombre: "HUEVOS EXTRA 30 u", precio: 3500, unidad: "30u" }
+  ];
+
+  const form = document.getElementById('pedidoForm');
+  const totalSpan = document.getElementById('total');
+  const enviarBtn = document.getElementById('enviarBtn');
+  const whatsappNumber = '+56073002026';
+
+  function crearInput(producto, index) {
+    let placeholder = 'Cantidad';
+    let step = '0.1';
+
+    if(producto.unidad === 'u' || producto.unidad === '30u') step = '1';
+    if(producto.unidad === '5kg') {
+      step = '1';
+      placeholder = 'Nº paquetes (5kg)';
+    }
+
+    return `
+      <div class="producto">
+        <label for="prod-${index}">${producto.nombre} - $${producto.precio} por ${producto.unidad}</label>
+        <input 
+          type="number" 
+          id="prod-${index}" 
+          min="0" 
+          step="${step}" 
+          placeholder="${placeholder}" 
+          value="0"
+        />
+      </div>
+    `;
+  }
+
+  productos.forEach((p, i) => {
+    form.innerHTML += crearInput(p, i);
+  });
+
+  function calcularTotal() {
+    let total = 0;
+    productos.forEach((p, i) => {
+      const input = document.getElementById(`prod-${i}`);
+      let cantidad = parseFloat(input.value) || 0;
+
+      total += cantidad * p.precio;
+    });
+    totalSpan.textContent = total.toFixed(0);
+  }
+
+  productos.forEach((_, i) => {
+    const input = document.getElementById(`prod-${i}`);
+    input.addEventListener('input', calcularTotal);
+  });
+
+  enviarBtn.addEventListener('click', () => {
+    let mensaje = 'Hola! Quisiera hacer el siguiente pedido:%0A';
+    let pedidoValido = false;
+
+    productos.forEach((p, i) => {
+      const input = document.getElementById(`prod-${i}`);
+      let cantidad = parseFloat(input.value) || 0;
+      if(cantidad > 0){
+        pedidoValido = true;
+        mensaje += `- ${p.nombre}: ${cantidad} ${p.unidad.replace('30u', 'paquetes')}%0A`;
+      }
+    });
+
+    if(!pedidoValido){
+      alert('Por favor, ingresa al menos un producto y su cantidad');
+      return;
+    }
+
+    mensaje += `%0A*Total: $${totalSpan.textContent}*%0A`;
+    mensaje += '%0AQuedo atento/a a la confirmación y detalles de entrega. ¡Gracias!';
+
+    const urlWhatsapp = `https://wa.me/${whatsappNumber.replace('+','')}?text=${mensaje}`;
+    window.open(urlWhatsapp, '_blank');
+  });
+
+  calcularTotal();
+</script>
+</body>
+</html>
